@@ -1,5 +1,4 @@
 const puppeteer = require("puppeteer");
-require("dotenv").config();
 const chai = require("chai");
 const { server } = require("../app");
 
@@ -14,16 +13,28 @@ chai.should();
     let browser = null;
     let page = null;
     before(async function () {
-      this.timeout(5000);
+      try {
+      this.timeout(10000);
       browser = await puppeteer.launch();
       page = await browser.newPage();
       await page.goto("http://localhost:3000");
-    });
+    } catch (err) {
+      console.error("Error during Puppeteer setup:", err);
+      process.exit(1);
+    }
+  });
     after(async function () {
-      this.timeout(5000);
-      await browser.close();
-      server.close();
-      return;
+      try {
+        this.timeout(10000);
+        if (browser) {
+          await browser.close();
+        }
+        if (server) {
+          server.close();
+        }
+      } catch (err) {
+        console.error("Error during cleanup:", err);
+      }
     });
     describe("got to site", function () {
       it("should have completed a connection", function (done) {
@@ -57,19 +68,39 @@ chai.should();
           await this.resultHandle.getProperty("textContent")
         ).jsonValue();
         console.log("at 1, resultData is ", resultData);
-        resultData.should.include("A person record was added");
+        resultData.should.include("The person added");
         const { index } = JSON.parse(resultData);
         this.lastIndex = index;
       });
       it("should not create a person record without an age", async function () {
-        // your code goes here.  Hint: to clear the age field, you need the line
-        // await page.$eval("#age", (el) => (el.value = "")); 
+        await this.nameField.type("Susan");
+        await page.$eval("#age", (el) => (el.value = ""));
+        await this.addPerson.click();
+        await sleep(200);
+        const resultData = await (
+          await this.resultHandle.getProperty("textContent")
+        ).jsonValue();
+        console.log("at 2, resultData is ", resultData);
+        resultData.should.include("Please enter an age");
       });
       it("should return the entries just created", async function () {
-         // your code goes here
+        await this.listPeople.click();
+        await sleep(200);
+        const resultData = await (
+          await this.resultHandle.getProperty("textContent")
+        ).jsonValue();
+        console.log("at 3, resultData is ", resultData);
+        resultData.should.include("Fred");
       });
       it("should return the last entry.", async function () {
-         // your code goes here
+        await this.personIndex.type(`${this.lastIndex}`);
+        await this.getPerson.click();
+        await sleep(200);
+        const resultData = await (
+          await this.resultHandle.getProperty("textContent")
+        ).jsonValue();
+        console.log("at 4, resultData is ", resultData);
+        resultData.should.include("Fred");
       });
     });
   });

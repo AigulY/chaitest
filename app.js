@@ -10,21 +10,21 @@ app.post("/api/v1/people", (req, res) => {
   if (!req.body.name) {
       res
         .status(400)
-        .json({ error: "Please enter a name" });
+        .json({ error: "Please enter a name." });
       return;
   }
 
   if (!req.body.age) {
     res
       .status(400)
-      .json({ error: "Please enter an age" });
+      .json({ error: "Please enter an age." });
     return;
 }
 
   if (req.body.age < 0) {
       res
         .status(400)
-        .json({ error: "Enter an age larger than 0" });
+        .json({ error: "Enter an age larger than 0." });
       return;
   }
 
@@ -44,7 +44,7 @@ app.get("/api/v1/people/:id", (req, res) => {
       if (index < 0 || index >= people.length) {
         res
           .status(404)
-          .json({ message: "The person record not found" });
+          .json({ message: "The person record not found." });
       return;
     }
     res.json(people[index]);
